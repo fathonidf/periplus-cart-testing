@@ -1,6 +1,7 @@
 package com.testing.periplus;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -19,16 +20,15 @@ public class PeriplusShoppingCartTest {
     private WebDriver driver;
     private WebDriverWait wait;
 
-    // Replace with your test account credentials
-    private final String TEST_EMAIL = "daffafathoni@gmail.com";
-    private final String TEST_PASSWORD = "testing123";
+    private final Dotenv dotenv = Dotenv.load();
+
+    private final String TEST_EMAIL = dotenv.get("TEST_EMAIL");
+    private final String TEST_PASSWORD = dotenv.get("TEST_PASSWORD");
 
     @BeforeClass
     public void setUp() {
-        // Setup ChromeDriver automatically
         WebDriverManager.chromedriver().setup();
 
-        // Configure Chrome options
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--start-maximized");
         options.addArguments("--disable-notifications");
@@ -36,7 +36,6 @@ public class PeriplusShoppingCartTest {
         options.addArguments("--disable-web-security");
         options.addArguments("--allow-running-insecure-content");
 
-        // Initialize driver
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(15));
 
@@ -66,10 +65,6 @@ public class PeriplusShoppingCartTest {
     @Test(priority = 2, dependsOnMethods = {"testNavigateToPeriplusWebsite"})
     public void testLogin() {
         try {
-            // Berdasarkan HTML, ada beberapa cara untuk akses login:
-            // 1. Via dropdown menu di account icon
-            // 2. Langsung ke halaman login
-
             System.out.println("Attempting to find login elements...");
 
             // Method 1: Try clicking on account icon to show dropdown
@@ -237,7 +232,6 @@ public class PeriplusShoppingCartTest {
 
             // Search for a product using the search functionality from HTML
             try {
-                // Berdasarkan HTML, search field ada dengan name="filter_name"
                 WebElement searchBox = wait.until(ExpectedConditions.visibilityOfElementLocated(
                         By.xpath("//input[@name='filter_name']")));
 
@@ -298,7 +292,6 @@ public class PeriplusShoppingCartTest {
     @Test(priority = 4, dependsOnMethods = {"testFindAndAddProductToCart"})
     public void testVerifyProductInCart() {
         try {
-            // Navigate to shopping cart - berdasarkan HTML ada link ke checkout/cart
             WebElement cartIcon = wait.until(ExpectedConditions.elementToBeClickable(
                     By.xpath("//a[@href='https://www.periplus.com/checkout/cart'] | //a[contains(@href,'checkout/cart')]")));
 
