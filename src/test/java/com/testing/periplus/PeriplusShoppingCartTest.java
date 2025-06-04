@@ -65,38 +65,8 @@ public class PeriplusShoppingCartTest {
     @Test(priority = 2, dependsOnMethods = {"testNavigateToPeriplusWebsite"})
     public void testLogin() {
         try {
-            System.out.println("Attempting to find login elements...");
-
-            // Method 1: Try clicking on account icon to show dropdown
-            try {
-                // Cari icon user account (berdasarkan HTML: fa-user-circle-o)
-                WebElement accountIcon = wait.until(ExpectedConditions.elementToBeClickable(
-                        By.xpath("//i[contains(@class,'fa-user-circle-o')]/parent::a")));
-
-                // Hover over the account icon to show dropdown
-                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", accountIcon);
-                Thread.sleep(1000);
-
-                // Click on account icon or hover to show dropdown
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", accountIcon);
-                System.out.println("Account icon clicked");
-
-                Thread.sleep(2000);
-
-                // Look for login link in dropdown
-                WebElement loginLink = wait.until(ExpectedConditions.elementToBeClickable(
-                        By.xpath("//a[@href='https://www.periplus.com/account/Login'] | //a[contains(@href,'/account/Login')]")));
-
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", loginLink);
-                System.out.println("Login link clicked from dropdown");
-
-            } catch (Exception e1) {
-                System.out.println("Method 1 failed, trying direct navigation...");
-
-                // Method 2: Direct navigation to login page
-                driver.get("https://www.periplus.com/account/Login");
-                System.out.println("Navigated directly to login page");
-            }
+            driver.get("https://www.periplus.com/account/Login");
+            System.out.println("Navigated directly to login page");
 
             Thread.sleep(3000);
 
@@ -105,23 +75,13 @@ public class PeriplusShoppingCartTest {
 
             // Try different possible selectors for email field
             WebElement emailField = null;
-            String[] emailSelectors = {
-                    "//input[@name='email']",
-                    "//input[@type='email']",
-                    "//input[@id='email']",
-                    "//input[contains(@placeholder,'email') or contains(@placeholder,'Email')]",
-                    "//input[@name='username']",
-                    "//input[@id='input-email']"
-            };
+            String emailSelector = "//input[@name='email']";
 
-            for (String selector : emailSelectors) {
-                try {
-                    emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(selector)));
-                    System.out.println("Email field found with selector: " + selector);
-                    break;
-                } catch (Exception e) {
-                    System.out.println("Selector failed: " + selector);
-                }
+            try {
+                emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(emailSelector)));
+                System.out.println("Email field found with selector: " + emailSelector);
+            } catch (Exception e) {
+                System.out.println("Selector failed: " + emailSelector);
             }
 
             if (emailField == null) {
@@ -130,21 +90,13 @@ public class PeriplusShoppingCartTest {
 
             // Try different possible selectors for password field
             WebElement passwordField = null;
-            String[] passwordSelectors = {
-                    "//input[@name='password']",
-                    "//input[@type='password']",
-                    "//input[@id='password']",
-                    "//input[@id='input-password']"
-            };
+            String passwordSelector = "//input[@name='password']";
 
-            for (String selector : passwordSelectors) {
-                try {
-                    passwordField = driver.findElement(By.xpath(selector));
-                    System.out.println("Password field found with selector: " + selector);
-                    break;
-                } catch (Exception e) {
-                    System.out.println("Password selector failed: " + selector);
-                }
+            try {
+                passwordField = driver.findElement(By.xpath(passwordSelector));
+                System.out.println("Password field found with selector: " + passwordSelector);
+            } catch (Exception e) {
+                System.out.println("Password selector failed: " + passwordSelector);
             }
 
             if (passwordField == null) {
@@ -162,23 +114,14 @@ public class PeriplusShoppingCartTest {
 
             // Find and click login button
             WebElement loginButton = null;
-            String[] loginButtonSelectors = {
-                    "//button[contains(text(),'Login')]",
-                    "//button[contains(text(),'Sign In')]",
-                    "//input[@type='submit' and contains(@value,'Login')]",
-                    "//button[@type='submit']",
-                    "//input[@type='submit']",
-                    "//a[contains(@class,'btn') and contains(text(),'Login')]"
-            };
 
-            for (String selector : loginButtonSelectors) {
-                try {
-                    loginButton = driver.findElement(By.xpath(selector));
-                    System.out.println("Login button found with selector: " + selector);
-                    break;
-                } catch (Exception e) {
-                    System.out.println("Login button selector failed: " + selector);
-                }
+            String loginButtonSelector = "//input[@type='submit' and contains(@value,'Login')]";
+
+            try {
+                loginButton = driver.findElement(By.xpath(loginButtonSelector));
+                System.out.println("Login button found with selector: " + loginButtonSelector);
+            } catch (Exception e) {
+                System.out.println("Login button selector failed: " + loginButtonSelector);
             }
 
             if (loginButton == null) {
@@ -236,8 +179,8 @@ public class PeriplusShoppingCartTest {
                         By.xpath("//input[@name='filter_name']")));
 
                 searchBox.clear();
-                searchBox.sendKeys("book");
-                System.out.println("Search term 'book' entered");
+                searchBox.sendKeys("Hunger Games");
+                System.out.println("Search term 'Hunger Games' entered");
 
                 // Click search button
                 WebElement searchButton = driver.findElement(
@@ -256,17 +199,22 @@ public class PeriplusShoppingCartTest {
                 Thread.sleep(3000);
             }
 
-            // Find available products
-            List<WebElement> products = driver.findElements(
-                    By.xpath("//a[contains(@href,'/p/') or contains(@href,'product')]"));
+            // Cari parent div row row-category-grid
+            WebElement productGridDiv = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                    By.xpath("//div[@class='row row-category-grid']")));
+            System.out.println("Product grid container found");
 
-            if (products.size() > 0) {
-                WebElement firstProduct = products.get(0);
-                String productHref = firstProduct.getAttribute("href");
+            // Cari semua link produk yang mengandung /p/ di dalam parent div tersebut
+            List<WebElement> productLinks = productGridDiv.findElements(
+                    By.xpath(".//a[contains(@href,'/p/')]"));
+
+            if (productLinks.size() > 0) {
+                WebElement firstProductLink = productLinks.get(0);
+                String productHref = firstProductLink.getAttribute("href");
                 System.out.println("Product found: " + productHref);
 
-                // Click on the product
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", firstProduct);
+                // Click on the product link
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", firstProductLink);
                 System.out.println("Navigated to product detail page");
                 Thread.sleep(3000);
 
@@ -280,7 +228,7 @@ public class PeriplusShoppingCartTest {
                 Thread.sleep(3000);
 
             } else {
-                throw new Exception("No products found");
+                throw new Exception("No products found in the grid");
             }
 
         } catch (Exception e) {
@@ -292,11 +240,8 @@ public class PeriplusShoppingCartTest {
     @Test(priority = 4, dependsOnMethods = {"testFindAndAddProductToCart"})
     public void testVerifyProductInCart() {
         try {
-            WebElement cartIcon = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//a[@href='https://www.periplus.com/checkout/cart'] | //a[contains(@href,'checkout/cart')]")));
-
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", cartIcon);
-            System.out.println("Navigated to shopping cart page");
+            driver.get("https://www.periplus.com/checkout/cart");
+            System.out.println("Navigated directly to Shopping Cart page");
 
             Thread.sleep(3000);
 
