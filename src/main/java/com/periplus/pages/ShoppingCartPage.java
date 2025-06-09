@@ -185,27 +185,22 @@ public class ShoppingCartPage {
 
                     WebElement removeButton = item.findElement(removeSelectedProductButton);
 
-                    // Scroll element into view
                     ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", removeButton);
 
-                    // Wait for element to be clickable
                     wait.until(ExpectedConditions.elementToBeClickable(removeButton));
 
-                    // Add small delay to ensure page is stable
                     Thread.sleep(500);
 
                     try {
-                        // Try normal click first
                         removeButton.click();
                         logger.info("Clicked remove button for an item using normal click.");
                     } catch (ElementClickInterceptedException e) {
                         logger.warning("Normal click intercepted, trying JavaScript click.");
-                        // Use JavaScript click as fallback
+
                         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", removeButton);
                         logger.info("Clicked remove button for an item using JavaScript click.");
                     }
 
-                    // Wait for the element to become stale (removed from DOM)
                     wait.until(ExpectedConditions.stalenessOf(removeButton));
                     logger.info("Item removed successfully.");
                     return;
