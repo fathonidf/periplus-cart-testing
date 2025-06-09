@@ -18,7 +18,6 @@ public class HomePage {
     private final By searchButton = By.xpath("//button[@type='submit' and contains(@class,'btnn')]");
     private final By productGridDiv = By.xpath("//div[@class='row row-category-grid']");
 
-
     public HomePage(WebDriver driver, WebDriverWait wait) {
         this.driver = driver;
         this.wait = wait;
@@ -42,5 +41,9 @@ public class HomePage {
 
         wait.until(ExpectedConditions.visibilityOfElementLocated(productGridDiv));
         logger.info("Product grid container found after search.");
+    }
+
+    public void logout() {
+        driver.get("https://www.periplus.com/_index_/Logout");
     }
 }
