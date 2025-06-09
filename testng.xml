@@ -5,6 +5,7 @@
         <classes>
             <class name="com.testing.periplus.CartFromEmptyTest"/>
             <class name="com.testing.periplus.CartWithOneProductTest"/>
+            <class name="com.testing.periplus.CartCheckoutTest"/>
         </classes>
     </test>
 </suite>
