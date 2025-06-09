@@ -5,7 +5,9 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.JavascriptExecutor;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
@@ -25,7 +27,7 @@ public class CartTest extends BaseTest {
     private ShoppingCartPage shoppingCartPage;
 
     @Override
-    @BeforeClass // Or @BeforeMethod?
+    @BeforeClass
     public void setUp() {
         super.setUp();
         homePage = new HomePage(driver, wait);
@@ -34,6 +36,10 @@ public class CartTest extends BaseTest {
         shoppingCartPage = new ShoppingCartPage(driver, wait);
     }
 
+    @AfterMethod
+    public void removeProductFromCartEachTestCase() {
+        shoppingCartPage.removeAllProductFromCart();
+    }
 
     @Test
     public void TC_CART_001_addSingleProductToCart() {
@@ -58,7 +64,8 @@ public class CartTest extends BaseTest {
 
             // Find Selected product
             homePage.searchForProduct(productTitle);
-            productDetailPage.clickFirstProductAndAddToCart();
+            productDetailPage.clickFirstProduct();
+            productDetailPage.clickAddToCartButton();
             int productPrice = Integer.parseInt(productDetailPage.getProductPrice());
             logger.info("Product titled " + productTitle + " with price " + Integer.toString(productPrice) + " successfully added to cart.");
 
@@ -73,8 +80,55 @@ public class CartTest extends BaseTest {
 
             logger.info("TC CART 001 Add Single Product To Cart Completed Successfully!");
         } catch (Exception e) {
-            logAndFail("Error during full shopping cart flow test.", e);
+            logAndFail("Error during TC CART 001 test.", e);
         }
     }
 
+    @Test
+    public void TC_CART_002_addMultipleQuantitiesOfSameProduct() {
+        logger.info(" Starting TC Cart 002: Add Multiple Quantities of Same Product Test...");
+        String productTitle = "Atomic Habits";
+        int quantity = 3;
+
+        try {
+            // Navigate to landing page
+            homePage.navigateToHomePage();
+            Assert.assertTrue(driver.getTitle().contains("Periplus"), "Page title should contain 'Periplus'");
+            logger.info("Page title: " + driver.getTitle() + " - Verification successful.");
+
+            // Login
+            loginPage.navigateToLoginPage();
+            loginPage.performLogin(TEST_EMAIL, TEST_PASSWORD);
+
+            wait.until(ExpectedConditions.or(
+                    ExpectedConditions.urlContains("account"),
+                    ExpectedConditions.urlContains("index")
+            ));
+            logger.info("Login process completed. Current URL: " + driver.getCurrentUrl());
+
+            // Find Selected product
+            homePage.searchForProduct(productTitle);
+            productDetailPage.clickFirstProduct();
+
+            // Set quantity to 3 and add to cart
+            productDetailPage.setQuantity(quantity); // Set quantity to 3
+            productDetailPage.clickAddToCartButton();
+            int productPrice = Integer.parseInt(productDetailPage.getProductPrice());
+            logger.info(Integer.toString(quantity) + " product titled " + productTitle + " with each price " + Integer.toString(productPrice) + " successfully added to cart.");
+
+            // Verify added product title, price, and quantity is in cart
+            shoppingCartPage.navigateToShoppingCart();
+            shoppingCartPage.verifyProductInCart(productTitle, productPrice, quantity);
+            logger.info("Product title successfully added to cart and verified.");
+
+            // Verify total price
+            shoppingCartPage.verifyTotalPriceInCart(productPrice * quantity); // multipled with the quantity
+            logger.info("Total price in cart calculated successfully.");
+
+            logger.info("TC CART 002 Add Multiple Quantities of Same Product Completed Successfully!");
+
+        } catch (Exception e) {
+            logAndFail("Error during TC CART 002 test.", e);
+        }
+    }
 }
