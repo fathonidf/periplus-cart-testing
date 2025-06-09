@@ -11,7 +11,7 @@ import com.periplus.pages.LoginPage;
 import com.periplus.pages.ProductDetailPage;
 import com.periplus.pages.ShoppingCartPage;
 
-public class CartTest extends BaseTest {
+public class CartFromEmptyTest extends BaseTest {
 
     private HomePage homePage;
     private LoginPage loginPage;
@@ -169,7 +169,7 @@ public class CartTest extends BaseTest {
             logger.info("Products title successfully added to cart and verified.");
 
             // Verify total price
-            shoppingCartPage.verifyTotalPriceInCart(productPrice1 + productPrice2); // multipled with the quantity
+            shoppingCartPage.verifyTotalPriceInCart(productPrice1 + productPrice2); // sum of two different products
             logger.info("Total price in cart calculated successfully.");
         } catch (Exception e) {
             logAndFail("Error during TC CART 003 test.", e);
