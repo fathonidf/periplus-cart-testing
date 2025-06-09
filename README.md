@@ -12,7 +12,7 @@ This project contains automated tests for the shopping cart functionality of the
 
 ## Project Structure
 
-The project follows a standard Maven (or Gradle) structure, leveraging the Page Object Model for maintainability and scalability.
+The project follows a standard Maven structure, leveraging the Page Object Model for maintainability and scalability.
 
 ```
 periplus-automation/
