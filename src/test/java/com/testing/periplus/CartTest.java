@@ -131,4 +131,57 @@ public class CartTest extends BaseTest {
             logAndFail("Error during TC CART 002 test.", e);
         }
     }
+
+    @Test
+    public void TC_CART_003_addMultipleDifferentProducts() {
+        logger.info(" Starting TC Cart 003: Add Multiple Different Products Test...");
+        String productTitle1 = "Sunrise on the Reaping";
+        String productTitle2 = "Atomic Habits";
+
+        try  {
+            // Navigate to landing page
+            homePage.navigateToHomePage();
+            Assert.assertTrue(driver.getTitle().contains("Periplus"), "Page title should contain 'Periplus'");
+            logger.info("Page title: " + driver.getTitle() + " - Verification successful.");
+
+            // Login
+            loginPage.navigateToLoginPage();
+            loginPage.performLogin(TEST_EMAIL, TEST_PASSWORD);
+
+            wait.until(ExpectedConditions.or(
+                    ExpectedConditions.urlContains("account"),
+                    ExpectedConditions.urlContains("index")
+            ));
+            logger.info("Login process completed. Current URL: " + driver.getCurrentUrl());
+
+            // Find product 1 & add to cart
+            homePage.searchForProduct(productTitle1);
+            productDetailPage.clickFirstProduct();
+            productDetailPage.clickAddToCartButton();
+            int productPrice1 = Integer.parseInt(productDetailPage.getProductPrice());
+            logger.info("Product titled " + productTitle1 + " with price " + Integer.toString(productPrice1) + " successfully added to cart.");
+
+            homePage.navigateToHomePage();
+
+            // Find product 2 & add to cart
+            homePage.searchForProduct(productTitle2);
+            productDetailPage.clickFirstProduct();
+            productDetailPage.clickAddToCartButton();
+            int productPrice2 = Integer.parseInt(productDetailPage.getProductPrice());
+            logger.info("Product titled " + productTitle2 + " with price " + Integer.toString(productPrice2) + " successfully added to cart.");
+
+            // Verify added product title, price, and quantity is in cart
+            shoppingCartPage.navigateToShoppingCart();
+            shoppingCartPage.verifyProductInCart(productTitle1, productPrice1, 1);
+            shoppingCartPage.verifyProductInCart(productTitle2, productPrice2, 1);
+            logger.info("Products title successfully added to cart and verified.");
+
+            // Verify total price
+            shoppingCartPage.verifyTotalPriceInCart(productPrice1 + productPrice2); // multipled with the quantity
+            logger.info("Total price in cart calculated successfully.");
+        } catch (Exception e) {
+            logAndFail("Error during TC CART 003 test.", e);
+        }
+
+    }
 }
