@@ -1,7 +1,8 @@
 package com.testing.periplus;
 
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.testng.annotations.AfterMethod;
+import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -28,6 +29,12 @@ public class CartCheckoutTest extends BaseTest {
         shoppingCartPage = new ShoppingCartPage(driver, wait);
     }
 
+    @AfterClass
+    public void clearCart() {
+        shoppingCartPage.navigateToShoppingCart();
+        shoppingCartPage.removeAllProductFromCart();
+    }
+
     public void addedOneProduct(String productTitle) {
         homePage.navigateToHomePage();
         loginPage.navigateToLoginPage();
@@ -37,9 +44,6 @@ public class CartCheckoutTest extends BaseTest {
                 ExpectedConditions.urlContains("account"),
                 ExpectedConditions.urlContains("index")
         ));
-
-        shoppingCartPage.navigateToShoppingCart();
-        shoppingCartPage.removeAllProductFromCart();
 
         homePage.searchForProduct(productTitle);
         productDetailPage.clickFirstProduct();
@@ -68,8 +72,30 @@ public class CartCheckoutTest extends BaseTest {
             shoppingCartPage.navigateToShoppingCart();
             int productPrice = Integer.parseInt(shoppingCartPage.getPrice(productName));
             shoppingCartPage.verifyProductInCart(productName, productPrice, 1);
+            shoppingCartPage.verifyTotalPriceInCart(productPrice);
         } catch (RuntimeException e) {
             logAndFail("Error during TC CART 007 test.", e);
         }
+    }
+
+    @Test
+    public void TC_CART_008_proceedToCheckout() {
+        logger.info("Starting TC Cart 008: Proceeding to Checkout Test...");
+
+        shoppingCartPage.navigateToShoppingCart();
+
+        String currentUrl = driver.getCurrentUrl();
+        Assert.assertTrue(currentUrl.contains("checkout/cart"),
+                "Expected to be on cart page, but current URL is: " + currentUrl);
+        logger.info("Successfully navigated to cart page: " + currentUrl);
+
+        // Proceed to checkout
+        shoppingCartPage.proceedToCheckout();
+
+        String checkoutUrl = driver.getCurrentUrl();
+        Assert.assertTrue(checkoutUrl.contains("checkout/shipping_address"),
+                "Expected to be redirected to shipping address page, but current URL is: " + checkoutUrl);
+
+        logger.info("Successfully proceeded to checkout shipping address page: " + checkoutUrl);
     }
 }
