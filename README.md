@@ -38,7 +38,6 @@ periplus-automation/
 │                       ├── CartCheckoutTest.java
 │                       ├── CartFromEmptyTest.java
 │                       └── CartWithOneProductTest.java
-│                       └── ... (Other specific test classes as per your structure)
 │
 ├── .env                             # Environment variables (e.g., TEST_EMAIL, TEST_PASSWORD)
 ├── pom.xml                          # Maven Project Object Model (dependencies)
@@ -59,13 +58,13 @@ periplus-automation/
 
 1.  **Clone the Repository:**
     ```bash
-    git clone <your-repo-url>
+    git clone <this-repo-url>
     cd periplus-automation
     ```
 
 2.  **Configure Environment Variables:**
     * Create a file named `.env` in the root directory of the project.
-    * Add your Periplus account credentials:
+    * Add Periplus account credentials:
         ```
         TEST_EMAIL=your_email@example.com
         TEST_PASSWORD=your_password
