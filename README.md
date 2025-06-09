@@ -8,7 +8,6 @@ This project contains automated tests for the shopping cart functionality of the
 
 * **Name:** Daffa Mohamad Fathoni
 * **University:** Computer Science - University of Indonesia
-* **Role:** Software Engineer Internship @ Openway
 * **Task:** Technical Task - Testing Shopping Cart Functionality on Periplus
 
 ## Project Structure
