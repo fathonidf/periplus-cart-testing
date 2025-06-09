@@ -22,6 +22,7 @@ public class ShoppingCartPage {
     private final By cartTotalElement = By.xpath("//span[@id='sub_total']");
     private final By proceedToCheckoutButton = By.xpath("//a[contains(@href,'checkout/checkout') or text()='Proceed to Checkout']");
     private final By removeProductButton = By.xpath("//a[contains(@class,'btn btn-cart-remove')]");
+    private final By removeSelectedProductButton = By.xpath(".//a[contains(@class,'btn btn-cart-remove')]");
     private final By productPriceInCart = By.xpath(".//div[contains(@class,'col-lg-10') and contains(@class,'col-9')]//div[@class='row' and contains(.,'Rp ')]");
     private final By emptyCartMessage = By.xpath("//div[@class='content' and text()='Your shopping cart is empty']");
 
@@ -168,6 +169,58 @@ public class ShoppingCartPage {
             throw new RuntimeException("Failed to get product price.", e);
         }
         return "0";
+    }
+
+    public void removeProduct(String productName) {
+        try {
+            List<WebElement> cartItems = driver.findElements(cartItemContainers);
+
+            for (int i = 0; i < cartItems.size(); i++) {
+                WebElement item = driver.findElements(cartItemContainers).get(i);
+                WebElement nameElement = item.findElement(productNameInCart);
+                String actualProductName = nameElement.getText().trim();
+
+                if (actualProductName.contains(productName)) {
+                    logger.info("Product '" + productName + "' found. Removing " + productName);
+
+                    WebElement removeButton = item.findElement(removeSelectedProductButton);
+
+                    // Scroll element into view
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", removeButton);
+
+                    // Wait for element to be clickable
+                    wait.until(ExpectedConditions.elementToBeClickable(removeButton));
+
+                    // Add small delay to ensure page is stable
+                    Thread.sleep(500);
+
+                    try {
+                        // Try normal click first
+                        removeButton.click();
+                        logger.info("Clicked remove button for an item using normal click.");
+                    } catch (ElementClickInterceptedException e) {
+                        logger.warning("Normal click intercepted, trying JavaScript click.");
+                        // Use JavaScript click as fallback
+                        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", removeButton);
+                        logger.info("Clicked remove button for an item using JavaScript click.");
+                    }
+
+                    // Wait for the element to become stale (removed from DOM)
+                    wait.until(ExpectedConditions.stalenessOf(removeButton));
+                    logger.info("Item removed successfully.");
+                    return;
+                }
+            }
+            throw new RuntimeException("Product '" + productName + "' not found in cart.");
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.severe("Thread interrupted while removing product: " + e.getMessage());
+            throw new RuntimeException("Failed to remove product due to interruption.", e);
+        } catch (Exception e) {
+            logger.severe("Failed to remove product: " + e.getMessage());
+            throw new RuntimeException("Failed to remove product.", e);
+        }
     }
 
     public void removeAllProductFromCart() {
