@@ -20,7 +20,7 @@ public class ShoppingCartPage {
     private final By productNameInCart = By.xpath(".//p[contains(@class,'product-name')]");
     private final By productQuantityInCart = By.xpath(".//input[contains(@class,'input-number') and @type='text']");
     private final By cartTotalElement = By.xpath("//span[@id='sub_total']");
-    private final By proceedToCheckoutButton = By.xpath("//a[contains(@href,'checkout/checkout') or text()='Proceed to Checkout']");
+    private final By checkoutButton = By.xpath("//div[@class='button5']//a[contains(@onclick,'beginCheckout()')]");
     private final By removeProductButton = By.xpath("//a[contains(@class,'btn btn-cart-remove')]");
     private final By removeSelectedProductButton = By.xpath(".//a[contains(@class,'btn btn-cart-remove')]");
     private final By productPriceInCart = By.xpath(".//div[contains(@class,'col-lg-10') and contains(@class,'col-9')]//div[@class='row' and contains(.,'Rp ')]");
@@ -245,10 +245,7 @@ public class ShoppingCartPage {
     public void verifyCartIsEmpty() {
         logger.info("Verifying if the shopping cart is empty...");
         try {
-            // Updated locator to match the actual HTML structure
-            By emptyCartMessageLocator = By.xpath("//div[@class='content' and text()='Your shopping cart is empty']");
-
-            WebElement emptyMessageElement = wait.until(ExpectedConditions.visibilityOfElementLocated(emptyCartMessageLocator));
+            WebElement emptyMessageElement = wait.until(ExpectedConditions.visibilityOfElementLocated(emptyCartMessage));
             String actualMessage = emptyMessageElement.getText().trim();
             String expectedMessage = "Your shopping cart is empty";
 
@@ -265,6 +262,43 @@ public class ShoppingCartPage {
         } catch (Exception e) {
             logger.severe("An unexpected error occurred during cart empty verification: " + e.getMessage());
             Assert.fail("An unexpected error occurred during cart empty verification: " + e.getMessage());
+        }
+    }
+
+    public void proceedToCheckout() {
+        try {
+            logger.info("Attempting to proceed to checkout...");
+
+            WebElement checkoutElement = wait.until(ExpectedConditions.elementToBeClickable(checkoutButton));
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", checkoutElement);
+
+            Thread.sleep(500);
+
+            try {
+                checkoutElement.click();
+                logger.info("Checkout button clicked successfully using normal click.");
+            } catch (ElementClickInterceptedException e) {
+
+                logger.warning("Normal click intercepted, trying JavaScript click for checkout.");
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", checkoutElement);
+                logger.info("Checkout button clicked successfully using JavaScript click.");
+            }
+
+            wait.until(ExpectedConditions.urlContains("checkout"));
+
+            logger.info("Successfully proceeded to checkout page.");
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.severe("Thread interrupted during checkout: " + e.getMessage());
+            throw new RuntimeException("Failed to proceed to checkout due to interruption.", e);
+        } catch (TimeoutException e) {
+            logger.severe("Timeout: Checkout button was not found or checkout page did not load within the specified wait time.");
+            throw new RuntimeException("Timeout: Failed to proceed to checkout.", e);
+        } catch (Exception e) {
+            logger.severe("Failed to proceed to checkout: " + e.getMessage());
+            throw new RuntimeException("Failed to proceed to checkout.", e);
         }
     }
 }
