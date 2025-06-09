@@ -3,7 +3,8 @@
 <suite name="PeriplusAutomationSuite">
     <test name="Shopping Cart Test">
         <classes>
-            <class name="com.testing.periplus.CartTest"/>
+            <class name="com.testing.periplus.CartFromEmptyTest"/>
+            <class name="com.testing.periplus.CartWithOneProductTest"/>
         </classes>
     </test>
 </suite>
