@@ -2,7 +2,6 @@ package com.testing.periplus;
 
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -47,11 +46,6 @@ public class CartWithOneProductTest extends BaseTest {
         productDetailPage.clickAddToCartButton();
     }
 
-    @AfterClass
-    public void removeProductFromCartEachTestCase() {
-        shoppingCartPage.removeAllProductFromCart();
-    }
-
     @Test
     public void TC_CART_004_updateProductQuantityInCart() {
         logger.info(" Starting TC Cart 004: Update Product Quantity In Cart Test...");
@@ -75,18 +69,6 @@ public class CartWithOneProductTest extends BaseTest {
             String productTitle = "Sunrise on the Reaping";
             // Navigate to landing page
             homePage.navigateToHomePage();
-            Assert.assertTrue(driver.getTitle().contains("Periplus"), "Page title should contain 'Periplus'");
-            logger.info("Page title: " + driver.getTitle() + " - Verification successful.");
-
-            // Login
-            loginPage.navigateToLoginPage();
-            loginPage.performLogin(TEST_EMAIL, TEST_PASSWORD);
-
-            wait.until(ExpectedConditions.or(
-                    ExpectedConditions.urlContains("account"),
-                    ExpectedConditions.urlContains("index")
-            ));
-            logger.info("Login process completed. Current URL: " + driver.getCurrentUrl());
 
             // Find Selected other product & add to cart
             homePage.searchForProduct(productTitle);
@@ -103,6 +85,19 @@ public class CartWithOneProductTest extends BaseTest {
             shoppingCartPage.verifyTotalPriceInCart(productPrice);
         } catch (Exception e) {
             logAndFail("Error during TC CART 005 test.", e);
+        }
+    }
+
+    @Test
+    public void TC_CART_006_emptyCartScenario() {
+        logger.info(" Starting TC Cart 005: Remove Product From Cart Test...");
+        try {
+            shoppingCartPage.navigateToShoppingCart();
+            shoppingCartPage.removeAllProductFromCart();
+
+            shoppingCartPage.verifyCartIsEmpty();
+        } catch (Exception e) {
+            logAndFail("Error during TC CART 006 test.", e);
         }
     }
 }
