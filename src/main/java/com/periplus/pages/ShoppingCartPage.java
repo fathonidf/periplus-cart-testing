@@ -1,8 +1,6 @@
 package com.periplus.pages;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;
@@ -19,13 +17,13 @@ public class ShoppingCartPage {
     private static final Logger logger = Logger.getLogger(ShoppingCartPage.class.getName());
 
     private final By cartItemContainers = By.xpath("//div[@class='row row-cart-product']");
-    private final By productNameInCart = By.xpath(".//p[contains(@class,'product-name')]"); // FIXED: Added dot
+    private final By productNameInCart = By.xpath(".//p[contains(@class,'product-name')]");
     private final By productQuantityInCart = By.xpath(".//input[contains(@class,'input-number') and @type='text']");
     private final By cartTotalElement = By.xpath("//span[@id='sub_total']");
     private final By proceedToCheckoutButton = By.xpath("//a[contains(@href,'checkout/checkout') or text()='Proceed to Checkout']");
     private final By removeProductButton = By.xpath("//a[contains(@class,'btn btn-cart-remove')]");
     private final By productPriceInCart = By.xpath(".//div[contains(@class,'col-lg-10') and contains(@class,'col-9')]//div[@class='row' and contains(.,'Rp ')]");
-    private final By emptyCartMessage = By.xpath("//p[contains(text(),'Your shopping cart is empty') or contains(text(),'Your cart is empty') or contains(text(),'Keranjang Anda kosong')]");
+    private final By emptyCartMessage = By.xpath("//div[@class='content' and text()='Your shopping cart is empty']");
 
     public ShoppingCartPage(WebDriver driver, WebDriverWait wait) {
         this.driver = driver;
@@ -104,6 +102,72 @@ public class ShoppingCartPage {
         logger.info("Found total price in cart is " + actualPrice);
 
         Assert.assertTrue(actualPrice.contains(formattedExpectedTotalPrice));
+    }
+
+    public void setQuantity(String productName, int quantity) {
+        try {
+                List<WebElement> cartItems = driver.findElements(cartItemContainers);
+
+                for (int i = 0; i < cartItems.size(); i++) {
+                    WebElement item = driver.findElements(cartItemContainers).get(i);
+                    WebElement nameElement = item.findElement(productNameInCart);
+                    String actualProductName = nameElement.getText().trim();
+
+                    if (actualProductName.contains(productName)) {
+                        logger.info("Product '" + productName + "' found. Setting quantity to: " + quantity);
+
+                        WebElement quantityElement = item.findElement(productQuantityInCart);
+                        ((JavascriptExecutor) driver).executeScript("arguments[0].value = arguments[1];", quantityElement, String.valueOf(quantity));
+                        quantityElement.sendKeys(Keys.ENTER);
+
+                        logger.info("Quantity set to: " + quantity);
+                        return;
+                    }
+                }
+                throw new RuntimeException("Product '" + productName + "' not found in cart.");
+
+        } catch (Exception e) {
+            logger.severe("Failed to set quantity: " + e.getMessage());
+            throw new RuntimeException("Failed to set product quantity.", e);
+        }
+    }
+
+    public String getPrice(String productName) {
+        try {
+            List<WebElement> cartItems = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(cartItemContainers));
+            Assert.assertFalse(cartItems.isEmpty(), "Cart should contain at least 1 product.");
+
+            boolean productFound = false;
+
+            for (int i = 0; i < cartItems.size(); i++) {
+                WebElement item = cartItems.get(i);
+                try {
+                    WebElement nameElement = item.findElement(productNameInCart);
+                    String actualProductName = nameElement.getText().trim();
+                    logger.info("Checking cart item " + (i+1) + " product name: " + actualProductName);
+
+                    if (actualProductName.contains(productName)) {
+
+                        // Verify product price
+                        WebElement priceElement = item.findElement(productPriceInCart);
+                        String actualPriceText = priceElement.getText().trim();
+                        logger.info("Actual price text found: '" + actualPriceText + "' for product '" + actualProductName + "'");
+
+                        return actualPriceText.split(" or ")[0].trim().substring(3).replace(",", "");
+                    }
+                } catch (Exception e) {
+                    logger.warning("Error processing cart item " + (i+1) + ": " + e.getMessage());
+                }
+            }
+
+            if (!productFound) {
+                throw new RuntimeException("Product '" + productName + "' not found in cart to get price.");
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get product price.", e);
+        }
+        return "0";
     }
 
     public void removeAllProductFromCart() {
