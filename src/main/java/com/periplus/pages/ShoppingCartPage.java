@@ -18,16 +18,14 @@ public class ShoppingCartPage {
     private WebDriverWait wait;
     private static final Logger logger = Logger.getLogger(ShoppingCartPage.class.getName());
 
-    // Element Locators
-    private final By cartItemContainers = By.xpath("//div[contains(@class,'cart-item') or contains(@class,'shopping-summery') or //tr[contains(@class,'cart')]]");
-    private final By productNameInCart = By.xpath("//p[contains(@class,'product-name')]");
+    private final By cartItemContainers = By.xpath("//div[@class='row row-cart-product']");
+    private final By productNameInCart = By.xpath(".//p[contains(@class,'product-name')]"); // FIXED: Added dot
     private final By productQuantityInCart = By.xpath(".//input[contains(@class,'input-number') and @type='text']");
     private final By cartTotalElement = By.xpath("//span[@id='sub_total']");
     private final By proceedToCheckoutButton = By.xpath("//a[contains(@href,'checkout/checkout') or text()='Proceed to Checkout']");
     private final By removeProductButton = By.xpath("//a[contains(@class,'btn btn-cart-remove')]");
     private final By productPriceInCart = By.xpath(".//div[contains(@class,'col-lg-10') and contains(@class,'col-9')]//div[@class='row' and contains(.,'Rp ')]");
     private final By emptyCartMessage = By.xpath("//p[contains(text(),'Your shopping cart is empty') or contains(text(),'Your cart is empty') or contains(text(),'Keranjang Anda kosong')]");
-
 
     public ShoppingCartPage(WebDriver driver, WebDriverWait wait) {
         this.driver = driver;
@@ -56,10 +54,13 @@ public class ShoppingCartPage {
         boolean productFound = false;
         String formattedExpectedPrice = formatPriceToRupiah(expectedProductPrice);
 
-        for (WebElement item : cartItems) {
+        for (int i = 0; i < cartItems.size(); i++) {
+            WebElement item = cartItems.get(i);
             try {
+                // FIXED: Now using relative xpath from item context
                 WebElement nameElement = item.findElement(productNameInCart);
-                String actualProductName = nameElement.getText();
+                String actualProductName = nameElement.getText().trim();
+                logger.info("Cart item " + (i+1) + " product name: " + actualProductName);
 
                 // Verify product name
                 if (actualProductName.contains(expectedProductName)) {
@@ -69,7 +70,7 @@ public class ShoppingCartPage {
 
                     // Verify product price
                     WebElement priceElement = item.findElement(productPriceInCart);
-                    String actualPriceText = priceElement.getText();
+                    String actualPriceText = priceElement.getText().trim();
                     logger.info("Actual price text found: '" + actualPriceText + "' for product '" + actualProductName + "'");
 
                     String cleanActualPrice = actualPriceText.split(" or ")[0].trim();
@@ -80,7 +81,7 @@ public class ShoppingCartPage {
                     // Verify product quantity
                     WebElement quantityInputElement = item.findElement(productQuantityInCart);
                     String actualQuantityValue = quantityInputElement.getAttribute("value");
-                    int actualQuantity = Integer.parseInt(actualQuantityValue); // Konversi string "value" ke integer
+                    int actualQuantity = Integer.parseInt(actualQuantityValue);
 
                     Assert.assertEquals(actualQuantity, expectedQuantity,
                             "Quantity for product '" + expectedProductName + "' is incorrect. Expected: " + expectedQuantity + ", Actual: " + actualQuantity);
@@ -90,7 +91,7 @@ public class ShoppingCartPage {
                     break;
                 }
             } catch (Exception e) {
-                logger.warning("Error processing a cart item (might not be the target product or locator issue): " + e.getMessage());
+                logger.warning("Error processing cart item " + (i+1) + ": " + e.getMessage());
             }
         }
         Assert.assertTrue(productFound, "Product '" + expectedProductName + "' with price " + formattedExpectedPrice + " and quantity " + expectedQuantity + " not found in cart or verification failed.");
