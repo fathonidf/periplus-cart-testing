@@ -56,7 +56,6 @@ public class ShoppingCartPage {
         for (int i = 0; i < cartItems.size(); i++) {
             WebElement item = cartItems.get(i);
             try {
-                // FIXED: Now using relative xpath from item context
                 WebElement nameElement = item.findElement(productNameInCart);
                 String actualProductName = nameElement.getText().trim();
                 logger.info("Cart item " + (i+1) + " product name: " + actualProductName);
@@ -242,5 +241,30 @@ public class ShoppingCartPage {
             }
         }
         logger.info("All products successfully removed from cart.");
+    }
+    public void verifyCartIsEmpty() {
+        logger.info("Verifying if the shopping cart is empty...");
+        try {
+            // Updated locator to match the actual HTML structure
+            By emptyCartMessageLocator = By.xpath("//div[@class='content' and text()='Your shopping cart is empty']");
+
+            WebElement emptyMessageElement = wait.until(ExpectedConditions.visibilityOfElementLocated(emptyCartMessageLocator));
+            String actualMessage = emptyMessageElement.getText().trim();
+            String expectedMessage = "Your shopping cart is empty";
+
+            Assert.assertEquals(actualMessage, expectedMessage,
+                    "The empty cart message is not as expected.");
+            logger.info("Successfully verified: '" + actualMessage + "' is displayed, confirming cart is empty.");
+
+        } catch (TimeoutException e) {
+            logger.severe("Timeout: The 'Your shopping cart is empty' message was not found on the page within the specified wait time.");
+            Assert.fail("Timeout: The 'Your shopping cart is empty' message was not found on the page.");
+        } catch (NoSuchElementException e) {
+            logger.severe("No such element: The 'Your shopping cart is empty' message element was not found.");
+            Assert.fail("No such element: The 'Your shopping cart is empty' message element was not found.");
+        } catch (Exception e) {
+            logger.severe("An unexpected error occurred during cart empty verification: " + e.getMessage());
+            Assert.fail("An unexpected error occurred during cart empty verification: " + e.getMessage());
+        }
     }
 }
