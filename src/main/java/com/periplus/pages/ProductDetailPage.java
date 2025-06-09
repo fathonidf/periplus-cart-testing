@@ -1,11 +1,8 @@
 package com.periplus.pages;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.JavascriptExecutor;
 
 import java.time.Duration;
 import java.util.List;
@@ -19,7 +16,7 @@ public class ProductDetailPage {
     // Element Locators
     private final By productLinkInGrid = By.xpath(".//a[contains(@href,'/p/')]");
     private final By addToCartButton = By.xpath("//button[contains(text(),'Add to Cart') or contains(text(),'Add To Cart') or contains(@class,'btn-add-to-cart')]");
-    private final By quantityInput = By.xpath("//input[@name='quantity' or @id='input-quantity' or @class='input-number']");
+    private final By quantityInput = By.xpath("//input[contains(@class,'input-number') and contains(@class,'textareaa-product') and @type='text']");
     private final By productPrice = By.xpath("//div[@class='quickview-price']");
 
     public ProductDetailPage(WebDriver driver, WebDriverWait wait) {
@@ -28,10 +25,21 @@ public class ProductDetailPage {
     }
 
     public void setQuantity(int quantity) {
-        WebElement quantityElement = wait.until(ExpectedConditions.visibilityOfElementLocated(quantityInput));
-        quantityElement.clear();
-        quantityElement.sendKeys(String.valueOf(quantity));
-        logger.info("Set product quantity to: " + quantity);
+        try {
+            WebElement quantityElement = wait.until(ExpectedConditions.visibilityOfElementLocated(quantityInput));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].value = arguments[1];", quantityElement, String.valueOf(quantity));
+            logger.info("Set product quantity to: " + quantity + " using JavaScript.");
+
+            quantityElement.sendKeys(Keys.ENTER);
+            logger.info("Pressed ENTER to trigger quantity change.");
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].dispatchEvent(new Event('change'));", quantityElement);
+            logger.info("Dispatched 'change' event for quantity input.");
+
+        } catch (Exception e) {
+            logger.log(java.util.logging.Level.SEVERE, "Failed to set product quantity to " + quantity + ": " + e.getMessage(), e);
+            throw new RuntimeException("Failed to set product quantity.", e);
+        }
     }
 
     public void clickAddToCartButton() {
@@ -48,7 +56,7 @@ public class ProductDetailPage {
         return priceElement.getText().substring(3).replace(",", "");
     }
 
-    public void clickFirstProductAndAddToCart() {
+    public void clickFirstProduct() {
         List<WebElement> productLinks = driver.findElements(By.xpath("//div[@class='row row-category-grid']//a[contains(@href,'/p/')]"));
         if (productLinks.isEmpty()) {
             throw new IllegalStateException("No products found in the grid to add to cart.");
@@ -59,7 +67,5 @@ public class ProductDetailPage {
 
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", firstProductLink);
         logger.info("Navigated to product detail page.");
-
-        clickAddToCartButton();
     }
 }

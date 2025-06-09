@@ -8,6 +8,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;
 
 import java.text.NumberFormat;
+import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
@@ -23,8 +24,10 @@ public class ShoppingCartPage {
     private final By productQuantityInCart = By.xpath(".//input[contains(@class,'input-number') and @type='text']");
     private final By cartTotalElement = By.xpath("//span[@id='sub_total']");
     private final By proceedToCheckoutButton = By.xpath("//a[contains(@href,'checkout/checkout') or text()='Proceed to Checkout']");
-    private final By removeProductButton = By.xpath(".//button[contains(@data-original-title,'Remove')]");
+    private final By removeProductButton = By.xpath("//a[contains(@class,'btn btn-cart-remove')]");
     private final By productPriceInCart = By.xpath(".//div[contains(@class,'col-lg-10') and contains(@class,'col-9')]//div[@class='row' and contains(.,'Rp ')]");
+    private final By emptyCartMessage = By.xpath("//p[contains(text(),'Your shopping cart is empty') or contains(text(),'Your cart is empty') or contains(text(),'Keranjang Anda kosong')]");
+
 
     public ShoppingCartPage(WebDriver driver, WebDriverWait wait) {
         this.driver = driver;
@@ -100,5 +103,31 @@ public class ShoppingCartPage {
         logger.info("Found total price in cart is " + actualPrice);
 
         Assert.assertTrue(actualPrice.contains(formattedExpectedTotalPrice));
+    }
+
+    public void removeAllProductFromCart() {
+        navigateToShoppingCart();
+
+        while (true) {
+            List<WebElement> currentRemoveButtons = driver.findElements(removeProductButton);
+            if (currentRemoveButtons.isEmpty()) {
+                logger.info("No more remove buttons found. Cart is empty or all items removed.");
+                break;
+            }
+
+            try {
+                WebElement removeButton = currentRemoveButtons.get(0);
+                removeButton.click();
+                logger.info("Clicked remove button for an item.");
+
+                wait.until(ExpectedConditions.stalenessOf(removeButton));
+                logger.info("Item removed. Waiting for cart to update...");
+                logger.info("Cart updated after removal.");
+
+            } catch (Exception e) {
+                logger.warning("Error during product removal or waiting for cart update: " + e.getMessage() + ". Attempting next item if any.");
+            }
+        }
+        logger.info("All products successfully removed from cart.");
     }
 }
